@@ -1,0 +1,12 @@
+{
+  "name": "ai-food-bank-pantry-manager",
+  "version": "1.0.0",
+  "description": "AI-powered Food Bank & Pantry Management System",
+  "scripts": {
+    "start": "bash start.sh",
+    "backend": "cd backend && nodemon server.js",
+    "frontend": "cd frontend && npx vite --port 3000",
+    "seed": "cd backend && node seed.js"
+  },
+  "private": true
+}
