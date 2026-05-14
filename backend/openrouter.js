@@ -11,7 +11,7 @@ async function callOpenRouter(messages, options = {}) {
       'X-Title': 'AI Food Bank Manager'
     },
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5',
+      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-3-5-sonnet-20241022',
       messages,
       max_tokens: options.maxTokens || 2000,
       temperature: options.temperature || 0.7,

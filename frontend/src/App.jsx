@@ -16,6 +16,10 @@ import Grants from './pages/Grants';
 import Donations from './pages/Donations';
 import Fleet from './pages/Fleet';
 import AITools from './pages/AITools';
+import AIAdvancedTools from './pages/AIAdvancedTools';
+import AIHistory from './pages/AIHistory';
+
+import Batch03Features from './pages/Batch03Features';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -37,6 +41,7 @@ function App() {
   return (
     <div className="app">
       <Routes>
+          <Route path="/batch03" element={<Batch03Features />} />
         <Route path="/" element={<Dashboard onLogout={handleLogout} />} />
         <Route path="/clients" element={<Clients onLogout={handleLogout} />} />
         <Route path="/visits" element={<Visits onLogout={handleLogout} />} />
@@ -52,6 +57,8 @@ function App() {
         <Route path="/donations" element={<Donations onLogout={handleLogout} />} />
         <Route path="/fleet" element={<Fleet onLogout={handleLogout} />} />
         <Route path="/ai-tools" element={<AITools onLogout={handleLogout} />} />
+        <Route path="/ai-advanced-tools" element={<AIAdvancedTools onLogout={handleLogout} />} />
+        <Route path="/ai-history" element={<AIHistory onLogout={handleLogout} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>

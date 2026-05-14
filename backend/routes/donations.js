@@ -70,6 +70,12 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { donor_id, amount, date, method, designation, tax_receipt_number, tax_receipt_sent, notes } = req.body;
+    if (!donor_id) {
+      return res.status(400).json({ error: 'Missing required field: donor_id' });
+    }
+    if (amount === undefined || amount === null || amount === '') {
+      return res.status(400).json({ error: 'Missing required field: amount' });
+    }
     const { rows } = await db.query(
       `INSERT INTO financial_donations (donor_id, amount, date, method, designation, tax_receipt_number, tax_receipt_sent, notes)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
