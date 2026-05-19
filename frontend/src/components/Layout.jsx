@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Users, ClipboardList, Package, Calendar, Heart, Megaphone, UserCheck, Truck, Warehouse, Handshake, FileText, DollarSign, Car, LayoutDashboard, Bot, History, LogOut, Sparkles } from 'lucide-react';
+import { Users, ClipboardList, Package, Calendar, Heart, Megaphone, UserCheck, Truck, Warehouse, Briefcase as Handshake, FileText, DollarSign, Car, LayoutDashboard, Bot, History, LogOut, Sparkles, Grid } from 'lucide-react';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -20,6 +20,7 @@ const navItems = [
   { path: '/ai-tools', label: 'AI Tools', icon: Bot },
   { path: '/ai-advanced-tools', label: 'AI Advanced', icon: Sparkles },
   { path: '/ai-history', label: 'AI History', icon: History },
+  { path: '/custom-views', label: 'Pantry Views', icon: Grid },
 ];
 
 export default function Layout({ children, title, onLogout }) {

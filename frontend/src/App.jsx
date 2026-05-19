@@ -20,6 +20,7 @@ import AIAdvancedTools from './pages/AIAdvancedTools';
 import AIHistory from './pages/AIHistory';
 
 import Batch03Features from './pages/Batch03Features';
+import CustomViewsPage from './pages/CustomViewsPage';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -59,6 +60,7 @@ function App() {
         <Route path="/ai-tools" element={<AITools onLogout={handleLogout} />} />
         <Route path="/ai-advanced-tools" element={<AIAdvancedTools onLogout={handleLogout} />} />
         <Route path="/ai-history" element={<AIHistory onLogout={handleLogout} />} />
+        <Route path="/custom-views" element={<CustomViewsPage onLogout={handleLogout} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>

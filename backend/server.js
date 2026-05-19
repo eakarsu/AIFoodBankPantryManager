@@ -311,6 +311,7 @@ app.use('/api/needs-assessment', require('./routes/needsAssessment'));
 app.use('/api/volunteer-training', require('./routes/volunteerTraining'));
 app.use('/api/supply-transparency', require('./routes/supplyTransparency'));
 app.use('/api/client-mobile', require('./routes/clientMobileApp'));
+app.use('/api/custom-views', require('./routes/customViews'));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
