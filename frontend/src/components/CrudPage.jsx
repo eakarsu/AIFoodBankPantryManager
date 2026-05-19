@@ -13,11 +13,19 @@ export default function CrudPage({ title, apiPath, columns, formFields, onLogout
   const [selectedItem, setSelectedItem] = useState(null);
   const [formData, setFormData] = useState({});
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
 
-  const fetchItems = async () => {
+  const fetchItems = async (p = 1) => {
+    setLoading(true);
     try {
-      const data = await api.get(apiPath);
-      setItems(data);
+      const data = await api.get(`${apiPath}?page=${p}&limit=20`);
+      if (data && data.data && data.pagination) {
+        setItems(data.data);
+        setPagination(data.pagination);
+      } else {
+        setItems(Array.isArray(data) ? data : []);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -25,7 +33,7 @@ export default function CrudPage({ title, apiPath, columns, formFields, onLogout
     }
   };
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => { fetchItems(page); }, [page]);
 
   const openNew = () => {
     setEditItem(null);
@@ -58,7 +66,7 @@ export default function CrudPage({ title, apiPath, columns, formFields, onLogout
         await api.post(apiPath, formData);
       }
       setShowModal(false);
-      fetchItems();
+      fetchItems(page);
     } catch (err) {
       alert(err.message);
     } finally {
@@ -71,7 +79,7 @@ export default function CrudPage({ title, apiPath, columns, formFields, onLogout
     try {
       await api.delete(`${apiPath}/${id}`);
       if (selectedItem?.id === id) setSelectedItem(null);
-      fetchItems();
+      fetchItems(page);
     } catch (err) {
       alert(err.message);
     }
@@ -214,6 +222,13 @@ export default function CrudPage({ title, apiPath, columns, formFields, onLogout
               ))}
             </tbody>
           </table>
+          {pagination && pagination.totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderTop: '1px solid var(--border-color, #e5e7eb)' }}>
+              <button className="btn btn-secondary" style={{ padding: '4px 12px', fontSize: '0.875rem' }} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
+              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)</span>
+              <button className="btn btn-secondary" style={{ padding: '4px 12px', fontSize: '0.875rem' }} onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))} disabled={page >= pagination.totalPages}>Next</button>
+            </div>
+          )}
         </div>
       )}
 

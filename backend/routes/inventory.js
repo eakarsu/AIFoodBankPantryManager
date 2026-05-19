@@ -1,16 +1,23 @@
 const router = require('express').Router();
 const db = require('../db');
 
-// GET all inventory
+// GET all inventory (paginated)
 router.get('/', async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+    const { rows: countRows } = await db.query('SELECT COUNT(*) AS total FROM inventory');
+    const total = parseInt(countRows[0].total, 10);
     const { rows } = await db.query(
       `SELECT i.*, w.name as warehouse_name
        FROM inventory i
        LEFT JOIN warehouses w ON i.warehouse_id = w.id
-       ORDER BY i.expiration_date ASC NULLS LAST`
+       ORDER BY i.expiration_date ASC NULLS LAST
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
     );
-    res.json(rows);
+    res.json({ data: rows, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -37,6 +44,12 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, category, source, quantity, unit, weight_lbs, expiration_date, storage_type, warehouse_id, barcode, min_stock_level, status } = req.body;
+    if (!name || !category) {
+      return res.status(400).json({ error: 'Missing required fields: name, category' });
+    }
+    if (quantity === undefined || quantity === null || quantity === '') {
+      return res.status(400).json({ error: 'Missing required field: quantity' });
+    }
     const { rows } = await db.query(
       `INSERT INTO inventory (name, category, source, quantity, unit, weight_lbs, expiration_date, storage_type, warehouse_id, barcode, min_stock_level, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,

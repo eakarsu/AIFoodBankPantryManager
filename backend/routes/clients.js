@@ -1,11 +1,16 @@
 const router = require('express').Router();
 const db = require('../db');
 
-// GET all clients
+// GET all clients (paginated)
 router.get('/', async (req, res) => {
   try {
-    const { rows } = await db.query('SELECT * FROM clients ORDER BY id DESC');
-    res.json(rows);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+    const { rows: countRows } = await db.query('SELECT COUNT(*) AS total FROM clients');
+    const total = parseInt(countRows[0].total, 10);
+    const { rows } = await db.query('SELECT * FROM clients ORDER BY id DESC LIMIT $1 OFFSET $2', [limit, offset]);
+    res.json({ data: rows, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -26,6 +31,12 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { first_name, last_name, email, phone, address, city, state, zip, household_size, income_level, dietary_restrictions, notes, is_homebound } = req.body;
+    if (!first_name || !last_name) {
+      return res.status(400).json({ error: 'Missing required fields: first_name, last_name' });
+    }
+    if (household_size === undefined || household_size === null || household_size === '') {
+      return res.status(400).json({ error: 'Missing required field: household_size' });
+    }
     const { rows } = await db.query(
       `INSERT INTO clients (first_name, last_name, email, phone, address, city, state, zip, household_size, income_level, dietary_restrictions, notes, is_homebound)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
