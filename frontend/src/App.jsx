@@ -21,6 +21,12 @@ import AIHistory from './pages/AIHistory';
 
 import Batch03Features from './pages/Batch03Features';
 import CustomViewsPage from './pages/CustomViewsPage';
+import PantryAllocationPlanner from './pages/PantryAllocationPlanner';
+
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -42,6 +48,10 @@ function App() {
   return (
     <div className="app">
       <Routes>
+        <Route path="/insights/timeline" element={<TimelineView />} />
+        <Route path="/codex/custom-viz" element={<CodexCustomVizFeature />} />
+        <Route path="/codex/operations" element={<CodexOperationsFeature />} />
+
           <Route path="/batch03" element={<Batch03Features />} />
         <Route path="/" element={<Dashboard onLogout={handleLogout} />} />
         <Route path="/clients" element={<Clients onLogout={handleLogout} />} />
@@ -61,6 +71,7 @@ function App() {
         <Route path="/ai-advanced-tools" element={<AIAdvancedTools onLogout={handleLogout} />} />
         <Route path="/ai-history" element={<AIHistory onLogout={handleLogout} />} />
         <Route path="/custom-views" element={<CustomViewsPage onLogout={handleLogout} />} />
+        <Route path="/pantry-allocation" element={<PantryAllocationPlanner onLogout={handleLogout} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>
