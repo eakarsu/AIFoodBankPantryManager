@@ -6,7 +6,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // ─── Env validation ───────────────────────────────────────────────────────────
-const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET', 'OPENROUTER_API_KEY'];
+const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET', ...(process.env.NODE_ENV === 'test' ? [] : ['OPENROUTER_API_KEY'])];
 const missingEnv = REQUIRED_ENV.filter((k) => !process.env[k]);
 if (missingEnv.length > 0) {
   console.error(`[FATAL] Missing required environment variables: ${missingEnv.join(', ')}`);
@@ -313,22 +313,17 @@ app.use('/api/supply-transparency', require('./routes/supplyTransparency'));
 app.use('/api/client-mobile', require('./routes/clientMobileApp'));
 app.use('/api/custom-views', require('./routes/customViews'));
 app.use('/api/pantry-allocation', require('./routes/pantryAllocation'));
+app.use('/api/governed-pantry-workflows', require('./routes/governedPantry'));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-initDb().then(() => {
-  
-// === Batch 03 Gaps & Frontend Mounts ===
-try {
-  const _batch03 = require('./routes/batch03Gaps');
-  if (typeof authenticateToken === 'function') app.use('/api', authenticateToken, _batch03);
-  else app.use('/api', _batch03);
-} catch (_e) { /* batch03 gap routes optional */ }
-
-app.listen(PORT, () => {
+if (require.main === module) {
+  app.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
   });
-});
+}
+
+module.exports = { app, initDb };

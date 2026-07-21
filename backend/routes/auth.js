@@ -2,6 +2,7 @@ const router = require('express').Router();
 const db = require('../db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const requireAuth = require('../middleware/auth');
 
 // POST /login
 router.post('/login', async (req, res) => {
@@ -34,6 +35,16 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await db.query('SELECT id, email, name, role FROM users WHERE id = $1', [req.user.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'User not found' });
+    return res.json({ user: rows[0] });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to load session user' });
   }
 });
 

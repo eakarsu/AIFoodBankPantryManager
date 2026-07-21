@@ -2,6 +2,10 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
+if (process.env.CONFIRM_DEMO_SEED !== 'yes') {
+  throw new Error('Destructive demo seed refused; use scripts/seed-demo.sh with CONFIRM_DEMO_SEED=yes');
+}
+
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function seed() {
