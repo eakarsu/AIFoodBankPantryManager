@@ -27,8 +27,8 @@ export default function Login({ onLogin }) {
   };
 
   const quickLogin = () => {
-    setEmail('admin@foodbank.org');
-    setPassword('password123');
+    setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
+    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
     setTimeout(() => {
       document.getElementById('login-form').requestSubmit();
     }, 100);

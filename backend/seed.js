@@ -8,6 +8,12 @@ if (process.env.CONFIRM_DEMO_SEED !== 'yes') {
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
+function requireDemoPassword() {
+  const password = process.env.DEMO_PASSWORD || process.env.SEED_DEMO_PASSWORD || process.env.DEMO_SEED_PASSWORD || '';
+  if (password.length < 12 || password.length > 1024) throw new Error('DEMO_PASSWORD must contain 12-1024 characters');
+  return password;
+}
+
 async function seed() {
   const client = await pool.connect();
   try {
@@ -246,7 +252,7 @@ async function seed() {
     console.log('Seeding data...');
 
     // --- Users ---
-    const hashedPassword = await bcrypt.hash('password123', 10);
+    const hashedPassword = await bcrypt.hash(requireDemoPassword(), 10);
     await client.query(`
       INSERT INTO users (email, password, name, role) VALUES
         ('admin@foodbank.org', $1, 'Sarah Mitchell', 'admin'),
@@ -609,8 +615,8 @@ async function seed() {
     console.log('\nDatabase seeded successfully!');
     console.log('Tables created: users, warehouses, clients, donors, inventory, visits, distributions, food_drives, volunteers, fleet, delivery_routes, partners, grants, financial_donations');
     console.log('Login credentials:');
-    console.log('  admin@foodbank.org / password123');
-    console.log('  manager@foodbank.org / password123');
+    console.log('Demo login users provisioned from the local environment.');
+    console.log('Demo login users provisioned from the local environment.');
   } catch (err) {
     console.error('Seed error:', err);
     throw err;
