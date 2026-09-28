@@ -56,7 +56,7 @@ export default function Login({ onLogin }) {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
           <button type="button" className="btn btn-secondary btn-block" onClick={quickLogin} style={{ marginTop: '10px' }}>
-            Quick Login (Demo)
+            Auto Fill Demo Credentials
           </button>
         </form>
         <div className="login-footer">
