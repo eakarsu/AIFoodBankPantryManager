@@ -22,7 +22,7 @@ async function apiFetch(path, options = {}) {
 
 export const api = {
   get: (path) => apiFetch(path),
-  post: (path, body) => apiFetch(path, { method: 'POST', body: JSON.stringify(body) }),
+  post: (path, body, nativeRequestOptions = {}) => apiFetch(path, { ...({ method: 'POST', body: JSON.stringify(body) }), ...(nativeRequestOptions) }),
   put: (path, body) => apiFetch(path, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (path) => apiFetch(path, { method: 'DELETE' }),
 };

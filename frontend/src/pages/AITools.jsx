@@ -1,3 +1,6 @@
+import NativeAIReport from "../components/NativeAIReport";
+import NativeAIControls from "../components/NativeAIControls";
+import useNativeAIRequest from "../components/useNativeAIRequest";
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { api } from '../api';
@@ -269,75 +272,13 @@ function ExpirationRiskDisplay({ result }) {
 }
 
 function AIResultDisplay({ result }) {
-  if (!result) return null;
-
-  const formatContent = (text) => {
-    const sections = [];
-    const lines = text.split('\n');
-    let currentSection = null;
-    let currentContent = [];
-
-    lines.forEach((line, i) => {
-      const headerMatch = line.match(/^#{1,3}\s+(.+)/) || line.match(/^\*\*(.+?)\*\*\s*$/);
-      if (headerMatch) {
-        if (currentSection || currentContent.length > 0) {
-          sections.push({ title: currentSection, content: currentContent.join('\n') });
-        }
-        currentSection = headerMatch[1].replace(/\*\*/g, '');
-        currentContent = [];
-      } else {
-        currentContent.push(line);
-      }
-    });
-    if (currentSection || currentContent.length > 0) {
-      sections.push({ title: currentSection, content: currentContent.join('\n') });
-    }
-
-    return sections.map((section, i) => (
-      <div key={i} className="ai-result-section">
-        {section.title && <h3 className="ai-result-section-title">{section.title}</h3>}
-        <div className="ai-result-section-content">
-          {section.content.split('\n').map((line, j) => {
-            if (!line.trim()) return <br key={j} />;
-            const bulletMatch = line.match(/^[\s]*[-•*]\s+(.+)/);
-            if (bulletMatch) {
-              return <div key={j} className="ai-bullet-point">{formatInlineText(bulletMatch[1])}</div>;
-            }
-            const numberedMatch = line.match(/^[\s]*(\d+)[.)]\s+(.+)/);
-            if (numberedMatch) {
-              return <div key={j} className="ai-numbered-point"><span className="ai-number">{numberedMatch[1]}</span>{formatInlineText(numberedMatch[2])}</div>;
-            }
-            return <p key={j}>{formatInlineText(line)}</p>;
-          })}
-        </div>
-      </div>
-    ));
-  };
-
-  const formatInlineText = (text) => {
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
-    return parts.map((part, i) => {
-      const boldMatch = part.match(/^\*\*(.+)\*\*$/);
-      if (boldMatch) return <strong key={i}>{boldMatch[1]}</strong>;
-      return part;
-    });
-  };
-
-  return (
-    <div className="ai-result">
-      <div className="ai-result-header">
-        <Sparkles size={18} />
-        <span>AI Analysis Result</span>
-        <span className="ai-result-time">{new Date(result.generated_at).toLocaleString()}</span>
-      </div>
-      <div className="ai-result-content">
-        {formatContent(result.result)}
-      </div>
-    </div>
-  );
+  return result ? <NativeAIReport response={result} /> : null;
 }
 
+
 export default function AITools({ onLogout }) {
+  const nativeAIRequest = useNativeAIRequest();
+
   const [selectedTool, setSelectedTool] = useState(null);
   const [formData, setFormData] = useState({});
   const [result, setResult] = useState(null);
@@ -364,7 +305,7 @@ export default function AITools({ onLogout }) {
         'donor-retention': '/ai/donor-retention',
       };
       const endpoint = endpointMap[selectedTool.id] || `/ai/${selectedTool.id}`;
-      const data = await api.post(endpoint, formData);
+      const data = await nativeAIRequest.run((signal) => api.post(endpoint, formData, { signal }));
       setResult(data);
     } catch (err) {
       setError(err.message);
@@ -375,14 +316,12 @@ export default function AITools({ onLogout }) {
 
   const renderResult = () => {
     if (!result) return null;
-    if (selectedTool?.id === 'food-package-builder') return <FoodPackageDisplay result={result} />;
-    if (selectedTool?.id === 'donor-retention') return <DonorRetentionDisplay result={result} />;
-    if (selectedTool?.id === 'expiration-risk') return <ExpirationRiskDisplay result={result} />;
+    if (selectedTool?.id === 'expiration-risk' && typeof result.result === 'string') return <ExpirationRiskDisplay result={result} />;
     return <AIResultDisplay result={result} />;
   };
 
   return (
-    <Layout title="AI Tools" onLogout={onLogout}>
+    <NativeAIControls busy={nativeAIRequest.busy} onCancel={nativeAIRequest.cancel} context="Food Bank Pantry Manager"><Layout title="AI Tools" onLogout={onLogout}>
       {!selectedTool ? (
         <div className="ai-tools-grid">
           {aiTools.map(tool => (
@@ -419,14 +358,14 @@ export default function AITools({ onLogout }) {
                     <div key={field.key} className="form-group">
                       <label>{field.label}</label>
                       {field.type === 'textarea' ? (
-                        <textarea className="form-input" rows={3} value={formData[field.key] || ''} onChange={e => setFormData({ ...formData, [field.key]: e.target.value })} placeholder={field.placeholder} />
+                        <textarea data-ai-field={field.key} className="form-input" rows={3} value={formData[field.key] || ''} onChange={e => setFormData({ ...formData, [field.key]: e.target.value })} placeholder={field.placeholder} />
                       ) : field.type === 'select' ? (
-                        <select className="form-input" value={formData[field.key] || ''} onChange={e => setFormData({ ...formData, [field.key]: e.target.value })}>
+                        <select data-ai-field={field.key} className="form-input" value={formData[field.key] || ''} onChange={e => setFormData({ ...formData, [field.key]: e.target.value })}>
                           <option value="">Select...</option>
                           {field.options.map(o => <option key={o} value={o}>{o}</option>)}
                         </select>
                       ) : (
-                        <input type={field.type || 'text'} className="form-input" value={formData[field.key] || ''} onChange={e => setFormData({ ...formData, [field.key]: e.target.value })} placeholder={field.placeholder} />
+                        <input data-ai-field={field.key} type={field.type || 'text'} className="form-input" value={formData[field.key] || ''} onChange={e => setFormData({ ...formData, [field.key]: e.target.value })} placeholder={field.placeholder} />
                       )}
                     </div>
                   ))}
@@ -474,6 +413,6 @@ export default function AITools({ onLogout }) {
           </div>
         </div>
       )}
-    </Layout>
+    </Layout></NativeAIControls>
   );
 }

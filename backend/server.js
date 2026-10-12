@@ -314,6 +314,8 @@ app.use('/api/client-mobile', require('./routes/clientMobileApp'));
 app.use('/api/custom-views', require('./routes/customViews'));
 app.use('/api/pantry-allocation', require('./routes/pantryAllocation'));
 app.use('/api/governed-pantry-workflows', require('./routes/governedPantry'));
+// Gap-feature AI endpoints (POST /api/gap-*) — mounted before the error handler so they are reachable.
+app.use('/api', require('./routes/batch03Gaps'));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

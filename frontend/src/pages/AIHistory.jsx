@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { api } from '../api';
 import { Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import NativeAIReport, { reportText, reportValue } from '../components/NativeAIReport';
 
 const ENDPOINT_LABELS = {
   'donation-appeal': 'Donation Appeal',
@@ -20,33 +21,40 @@ export default function AIHistory({ onLogout }) {
   const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => { fetchResults(page); }, [page]);
 
   const fetchResults = async (p) => {
     setLoading(true);
+    setLoadError('');
     try {
       const data = await api.get(`/ai-results?page=${p}&limit=20`);
-      setResults(data.data || []);
-      setPagination(data.pagination);
+      if (!Array.isArray(data?.data)) throw new Error('Invalid AI history response: expected a record array');
+      setResults(data.data);
+      setPagination(data.pagination || null);
     } catch (err) {
-      console.error(err);
+      setResults([]);
+      setPagination(null);
+      setLoadError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (d) => new Date(d).toLocaleString();
-  const preview = (text) => {
-    if (!text) return '—';
-    const plain = text.replace(/[#*`]/g, '').replace(/\n+/g, ' ').trim();
+  const preview = (result) => {
+    if (result === null || result === undefined) return '—';
+    const plain = reportText(reportValue(result)).replace(/[#*`]/g, '').replace(/\n+/g, ' ').trim();
     return plain.length > 120 ? plain.substring(0, 120) + '…' : plain;
   };
 
   return (
     <Layout title="AI Results History" onLogout={onLogout}>
-      {loading ? (
+      {loadError ? (
+        <div className="alert alert-danger" role="alert">Could not load AI history: {loadError}</div>
+      ) : loading ? (
         <div className="loading-spinner"><div className="spinner"></div></div>
       ) : results.length === 0 ? (
         <div className="empty-state">
@@ -109,9 +117,7 @@ export default function AIHistory({ onLogout }) {
                             </div>
                           )}
                           <strong style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6b7280' }}>Full Result</strong>
-                          <pre style={{ marginTop: '6px', fontSize: '0.82rem', whiteSpace: 'pre-wrap', lineHeight: 1.6, maxHeight: '400px', overflowY: 'auto', color: '#1f2937' }}>
-                            {r.result}
-                          </pre>
+                          <NativeAIReport response={r.result} title={ENDPOINT_LABELS[r.endpoint] || r.endpoint} />
                         </div>
                       </td>
                     </tr>

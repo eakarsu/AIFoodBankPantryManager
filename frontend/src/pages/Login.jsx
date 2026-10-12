@@ -26,12 +26,15 @@ export default function Login({ onLogin }) {
     }
   };
 
-  const quickLogin = () => {
-    setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
-    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
-    setTimeout(() => {
-      document.getElementById('login-form').requestSubmit();
-    }, 100);
+  const demoEmail = import.meta.env.VITE_DEMO_EMAIL;
+  const demoPassword = import.meta.env.VITE_DEMO_PASSWORD;
+  const demoAvailable = import.meta.env.VITE_ENABLE_DEMO_CREDENTIAL_AUTOFILL === 'true' && Boolean(demoEmail && demoPassword);
+
+  const fillDemoCredentials = () => {
+    if (!demoAvailable) return;
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError('');
   };
 
   return (
@@ -55,9 +58,10 @@ export default function Login({ onLogin }) {
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
-          <button type="button" className="btn btn-secondary btn-block" onClick={quickLogin} style={{ marginTop: '10px' }}>
-            Auto Fill Demo Credentials
+          <button type="button" className="btn btn-secondary btn-block" onClick={fillDemoCredentials} disabled={!demoAvailable || loading} style={{ marginTop: '10px' }}>
+            Fill Demo Credentials
           </button>
+          {!demoAvailable && <p role="status">Demo credentials are not configured for this session.</p>}
         </form>
         <div className="login-footer">
           <p>Powered by AI &bull; OpenRouter + Claude</p>

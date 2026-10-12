@@ -1,3 +1,6 @@
+import NativeAIControls from "../components/NativeAIControls";
+import useNativeAIRequest from "../components/useNativeAIRequest";
+import NativeAIReport from '../components/NativeAIReport';
 import React, { useState } from 'react';
 import Layout from '../components/Layout';
 import { api } from '../api';
@@ -88,15 +91,15 @@ function ResultCard({ result, error }) {
         {result.generated_at && <span className="ai-result-time">{new Date(result.generated_at).toLocaleString()}</span>}
       </div>
       <div style={{ padding: '12px 0' }}>
-        <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.85rem', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '12px' }}>
-          {JSON.stringify(result, null, 2)}
-        </pre>
+        <NativeAIReport response={result} />
       </div>
     </div>
   );
 }
 
 export default function AIAdvancedTools({ onLogout }) {
+  const nativeAIRequest = useNativeAIRequest();
+
   const [activeId, setActiveId] = useState(null);
   const [formState, setFormState] = useState({});
   const [loading, setLoading] = useState(false);
@@ -128,7 +131,7 @@ export default function AIAdvancedTools({ onLogout }) {
           sanitized[k] = payload[k];
         }
       });
-      const res = await api.post(tool.path, sanitized);
+      const res = await nativeAIRequest.run((signal) => api.post(tool.path, sanitized, { signal }));
       setResults((prev) => ({ ...prev, [tool.id]: res }));
     } catch (e) {
       setErrors((prev) => ({ ...prev, [tool.id]: e.message }));
@@ -138,7 +141,7 @@ export default function AIAdvancedTools({ onLogout }) {
   };
 
   return (
-    <Layout title="AI Advanced Tools" onLogout={onLogout}>
+    <NativeAIControls busy={nativeAIRequest.busy} onCancel={nativeAIRequest.cancel} context="Food Bank Pantry Manager"><Layout title="AI Advanced Tools" onLogout={onLogout}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
         <Bot size={28} style={{ color: '#0d9488' }} />
         <p style={{ margin: 0, color: '#6b7280' }}>
@@ -188,7 +191,7 @@ export default function AIAdvancedTools({ onLogout }) {
                   {f.label}
                 </label>
                 {f.type === 'textarea' ? (
-                  <textarea
+                  <textarea data-ai-field={f.key}
                     rows={3}
                     placeholder={f.placeholder}
                     value={value}
@@ -196,7 +199,7 @@ export default function AIAdvancedTools({ onLogout }) {
                     style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.875rem' }}
                   />
                 ) : f.type === 'select' ? (
-                  <select
+                  <select data-ai-field={f.key}
                     value={value || (f.options ? f.options[0] : '')}
                     onChange={(e) => handleFieldChange(active.id, f.key, e.target.value)}
                     style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.875rem' }}
@@ -206,7 +209,7 @@ export default function AIAdvancedTools({ onLogout }) {
                     ))}
                   </select>
                 ) : (
-                  <input
+                  <input data-ai-field={f.key}
                     type={f.type || 'text'}
                     placeholder={f.placeholder}
                     value={value}
@@ -244,6 +247,6 @@ export default function AIAdvancedTools({ onLogout }) {
           </div>
         </div>
       )}
-    </Layout>
+    </Layout></NativeAIControls>
   );
 }

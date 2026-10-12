@@ -15,19 +15,21 @@ export default function CrudPage({ title, apiPath, columns, formFields, onLogout
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
   const fetchItems = async (p = 1) => {
     setLoading(true);
+    setLoadError('');
     try {
       const data = await api.get(`${apiPath}?page=${p}&limit=20`);
-      if (data && data.data && data.pagination) {
-        setItems(data.data);
-        setPagination(data.pagination);
-      } else {
-        setItems(Array.isArray(data) ? data : []);
-      }
+      const rows = Array.isArray(data) ? data : data?.data;
+      if (!Array.isArray(rows)) throw new Error(`Invalid ${apiPath} response: expected a record array`);
+      setItems(rows);
+      setPagination(Array.isArray(data) ? null : data.pagination || null);
     } catch (err) {
-      console.error(err);
+      setItems([]);
+      setPagination(null);
+      setLoadError(err.message);
     } finally {
       setLoading(false);
     }
@@ -186,7 +188,9 @@ export default function CrudPage({ title, apiPath, columns, formFields, onLogout
         </div>
       )}
 
-      {loading ? (
+      {loadError ? (
+        <div className="alert alert-danger" role="alert">Could not load {title.toLowerCase()}: {loadError}</div>
+      ) : loading ? (
         <div className="loading-spinner"><div className="spinner"></div></div>
       ) : filtered.length === 0 ? (
         <div className="empty-state">
