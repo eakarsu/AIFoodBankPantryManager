@@ -12,6 +12,10 @@ if (missingEnv.length > 0) {
   console.error(`[FATAL] Missing required environment variables: ${missingEnv.join(', ')}`);
   process.exit(1);
 }
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('[FATAL] JWT_SECRET must contain at least 32 characters');
+  process.exit(1);
+}
 
 const db = require('./db');
 
@@ -276,6 +280,8 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
 app.use('/api', authMiddleware);
 
 // Routes
@@ -316,6 +322,8 @@ app.use('/api/pantry-allocation', require('./routes/pantryAllocation'));
 app.use('/api/governed-pantry-workflows', require('./routes/governedPantry'));
 // Gap-feature AI endpoints (POST /api/gap-*) — mounted before the error handler so they are reachable.
 app.use('/api', require('./routes/batch03Gaps'));
+// Feature pack wave 1A — tasks, inventory search/export, fallback-aware AI.
+app.use('/api/feature-pack', require('./routes/featurePack'));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
